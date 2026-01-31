@@ -84,8 +84,8 @@ export async function POST(request: Request) {
 
 // DELETE /api/favorites - Remove a product from favorites
 export async function DELETE(request: Request) {
-  try {ql = getSql();
-    const s
+  try {
+    const sql = getSql();
     const session = await auth();
 
     if (!session?.user?.id) {

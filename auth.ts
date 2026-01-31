@@ -45,8 +45,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return true;
     },
     async jwt({ token, user }) {
-      if (usersql = getSql();
-        const ?.email) {
+      if (user?.email) {
+        const sql = getSql();
         const users = await sql`
           SELECT id FROM "User" WHERE email = ${user.email}
         `;
