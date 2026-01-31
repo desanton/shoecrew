@@ -22,7 +22,7 @@ const features = [
 
 export function FeaturesSection() {
   return (
-    <section className="bg-[#F4F4F4]">
+    <section className="bg-page-bg">
       {/* Divider Line */}
       <div 
         className="mx-auto"
@@ -102,7 +102,7 @@ export function FeaturesSection() {
                   fontWeight: 700,
                   fontSize: "24px",
                   lineHeight: "28px",
-                  color: "#181818"
+                  color: "var(--color-dark)"
                 }}
               >
                 {feature.title}
@@ -116,7 +116,7 @@ export function FeaturesSection() {
                   fontWeight: 400,
                   fontSize: "16px",
                   lineHeight: "21px",
-                  color: "#181818"
+                  color: "var(--color-dark)"
                 }}
               >
                 {feature.description}

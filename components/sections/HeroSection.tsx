@@ -4,7 +4,7 @@ import Image from "next/image";
 
 export function HeroSection() {
   return (
-    <section className="bg-[#F4F4F4] overflow-hidden">
+    <section className="bg-page-bg overflow-hidden">
       <div 
         className="relative mx-auto"
         style={{ width: "1090px", maxWidth: "100%", height: "578px" }}
@@ -47,7 +47,7 @@ export function HeroSection() {
               fontSize: "24px",
               lineHeight: "34px",
               letterSpacing: "0.15em",
-              color: "#181818"
+              color: "var(--color-dark)"
             }}
           >
             ADJUSTABLE
@@ -104,7 +104,7 @@ export function HeroSection() {
               fontSize: "24px",
               lineHeight: "34px",
               letterSpacing: "0.15em",
-              color: "#181818"
+              color: "var(--color-dark)"
             }}
           >
             SOFT PAD

@@ -56,7 +56,7 @@ export function Footer() {
       className="flex flex-col justify-center items-center"
       style={{ 
         width: "100%",
-        background: "#333333",
+        background: "var(--color-footer-bg)",
         padding: "58px 144px 35px",
         gap: "43px"
       }}

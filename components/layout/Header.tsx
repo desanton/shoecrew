@@ -14,7 +14,7 @@ const navLinks = [
 
 export function Header() {
   return (
-    <header className="bg-[#F4F4F4]">
+    <header className="bg-page-bg">
       <div 
         className="flex flex-row items-center justify-between mx-auto"
         style={{ 
@@ -29,7 +29,7 @@ export function Header() {
           {/* Logo - 30x30 black square */}
           <Link href="/" className="flex items-center">
             <div 
-              className="bg-[#181818]"
+              className="bg-dark"
               style={{ width: "30px", height: "30px" }}
             >
               {/* Bird icon placeholder */}
@@ -58,7 +58,7 @@ export function Header() {
               <Link
                 key={link.name}
                 href={link.href}
-                className="text-[#181818] hover:opacity-70 transition-opacity"
+                className="text-dark hover:opacity-70 transition-opacity"
                 style={{
                   fontFamily: "'Space Grotesk', sans-serif",
                   fontWeight: 700,
@@ -82,21 +82,21 @@ export function Header() {
             style={{ width: "24px", height: "24.5px", padding: "4px 3px" }}
           >
             <Heart 
-              className="text-[#181818]" 
+              className="text-dark" 
               style={{ width: "18px", height: "16.5px" }}
               strokeWidth={1.5} 
             />
           </button>
           <button style={{ width: "24px", height: "24px" }}>
             <ShoppingCart 
-              className="text-[#181818]" 
+              className="text-dark" 
               style={{ width: "24px", height: "24px" }}
               strokeWidth={1.5} 
             />
           </button>
           <button style={{ width: "24px", height: "24px" }}>
             <User 
-              className="text-[#181818]" 
+              className="text-dark" 
               style={{ width: "24px", height: "24px" }}
               strokeWidth={1.5} 
             />

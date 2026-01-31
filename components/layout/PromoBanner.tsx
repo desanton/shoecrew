@@ -3,7 +3,7 @@
 export function PromoBanner() {
   return (
     <div 
-      className="flex flex-row justify-center items-center w-full h-[41px] bg-[#4A4C6C]"
+      className="flex flex-row justify-center items-center w-full h-[41px] bg-promo-bg"
       style={{ padding: "12px 596px", gap: "10px" }}
     >
       <p 

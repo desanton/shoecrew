@@ -25,7 +25,7 @@ export function ProductCard({ product }: ProductCardProps) {
         style={{ 
           width: "270px", 
           height: "250px", 
-          background: "#E9E9EB",
+          background: "var(--color-card-bg)",
           borderRadius: "4px"
         }}
       >
@@ -37,7 +37,7 @@ export function ProductCard({ product }: ProductCardProps) {
               left: "12px", 
               top: "12px",
               padding: "4px 12px",
-              background: "#DB4444",
+              background: "var(--color-discount)",
               borderRadius: "4px"
             }}
           >
@@ -150,7 +150,7 @@ export function ProductCard({ product }: ProductCardProps) {
                   fontWeight: 500,
                   fontSize: "16px",
                   lineHeight: "24px",
-                  color: "#DB4444"
+                  color: "var(--color-discount)"
                 }}
               >
                 ${product.price}
@@ -200,7 +200,7 @@ export function ProductCard({ product }: ProductCardProps) {
                 style={{ width: "20px", height: "20px" }}
                 className={
                   i < product.rating
-                    ? "text-[#FFAD33] fill-[#FFAD33]"
+                    ? "text-star fill-star"
                     : "text-black/25 fill-black/25"
                 }
               />
