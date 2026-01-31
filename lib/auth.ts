@@ -1,10 +1,9 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import type { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import { prisma } from "@/lib/prisma";
+import { NeonAdapter } from "@/lib/neon-adapter";
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  adapter: NeonAdapter(),
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
