@@ -21,14 +21,13 @@ export function ProductSection() {
           {/* New Arrivals Button */}
           <button
             onClick={() => setActiveTab(0)}
-            className="flex flex-row justify-center items-center"
+            className="flex flex-row justify-center items-center transition-all duration-200"
             style={{
-              width: "215px",
+              minWidth: "215px",
               height: "57px",
               padding: "16px 33px",
               background: activeTab === 0 ? "#4A4C6C" : "transparent",
-              border: activeTab === 0 ? "4px solid #7C7EA2" : "4px solid #4A4C6C",
-              boxShadow: activeTab === 0 ? "0px 5px 8px rgba(74, 76, 108, 0.4)" : "none",
+              border: activeTab === 0 ? "none" : "3px solid #4A4C6C",
               borderRadius: "100px"
             }}
           >
@@ -37,10 +36,9 @@ export function ProductSection() {
                 fontFamily: "'Cabinet Grotesk', sans-serif",
                 fontWeight: 700,
                 fontSize: "20px",
-                lineHeight: "25px",
+                lineHeight: "100%",
                 letterSpacing: "0.05em",
-                textTransform: "capitalize",
-                color: activeTab === 0 ? "#F4F4F4" : "#4A4C6C"
+                color: activeTab === 0 ? "#FFFFFF" : "#4A4C6C"
               }}
             >
               NEW ARRIVALS
@@ -50,14 +48,13 @@ export function ProductSection() {
           {/* What's Trending Button */}
           <button
             onClick={() => setActiveTab(1)}
-            className="flex flex-row justify-center items-center"
+            className="flex flex-row justify-center items-center transition-all duration-200"
             style={{
-              width: "250px",
+              minWidth: "250px",
               height: "57px",
               padding: "16px 33px",
-              background: activeTab === 1 ? "#77794E" : "transparent",
-              border: activeTab === 1 ? "4px solid #9FA26D" : "4px solid #77794E",
-              boxShadow: activeTab === 1 ? "0px 5px 8px rgba(119, 121, 78, 0.4)" : "none",
+              background: activeTab === 1 ? "#9FA16D" : "transparent",
+              border: activeTab === 1 ? "none" : "3px solid #9FA16D",
               borderRadius: "100px"
             }}
           >
@@ -66,10 +63,9 @@ export function ProductSection() {
                 fontFamily: "'Cabinet Grotesk', sans-serif",
                 fontWeight: 700,
                 fontSize: "20px",
-                lineHeight: "25px",
+                lineHeight: "100%",
                 letterSpacing: "0.05em",
-                textTransform: "capitalize",
-                color: activeTab === 1 ? "#F4F4F4" : "#77794E"
+                color: activeTab === 1 ? "#FFFFFF" : "#9FA16D"
               }}
             >
               {"WHAT'S TRENDING"}
