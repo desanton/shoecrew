@@ -47,6 +47,7 @@ export async function GET(request: Request) {
       stars: product.stars,
       reviewCount: product.reviewCount,
       image: `/products/${product.imageFileName}`,
+      imageTransform: product.imageTransform,
       isNewArrival: product.isNewArrival,
       isTrending: product.isTrending,
       sortOrder: product.sortOrder,
