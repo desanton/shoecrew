@@ -1,16 +1,61 @@
 "use client";
 
-import { Heart, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
-import type { Product } from "@/lib/data/products";
+import { useState, useEffect } from "react";
+import type { Product, ImageTransform } from "@/lib/types/product";
+import { HeartIcon } from "@/components/ui/heart-icon";
 
 interface ProductCardProps {
   product: Product;
+  isFavorited?: boolean;
+  onFavoriteToggle?: (productId: string, isFavorited: boolean) => void;
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+const defaultImageTransform: ImageTransform = {
+  rotationDeg: -15,
+  scale: 1,
+  shiftX: 0,
+  shiftY: 0,
+  mirrorX: false,
+};
+
+function formatPrice(cents: number): string {
+  return `$${(cents / 100).toFixed(0)}`;
+}
+
+export function ProductCard({
+  product,
+  isFavorited = false,
+  onFavoriteToggle,
+}: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [localFavorited, setLocalFavorited] = useState(isFavorited);
+
+  // Sync local state with props using useEffect (not during render)
+  useEffect(() => {
+    setLocalFavorited(isFavorited);
+  }, [isFavorited]);
+
+  const handleFavoriteClick = () => {
+    const newFavoriteState = !localFavorited;
+    setLocalFavorited(newFavoriteState);
+    onFavoriteToggle?.(product.id, newFavoriteState);
+  };
+
+  // Get image transform, using defaults if null/missing
+  const transform: ImageTransform = product.imageTransform
+    ? { ...defaultImageTransform, ...product.imageTransform }
+    : defaultImageTransform;
+
+  const imageStyle = {
+    filter: "drop-shadow(6px 6px 4px rgba(0, 0, 0, 0.25))",
+    transform: `rotate(${transform.rotationDeg}deg) scale(${transform.scale}) translateX(${transform.shiftX}px) translateY(${transform.shiftY}px)${transform.mirrorX ? " scaleX(-1)" : ""}`,
+  };
+
+  // Determine if product has a discount
+  const hasDiscount =
+    product.discountedPriceCents !== null && product.discountPercent !== null;
 
   return (
     <div
@@ -20,61 +65,61 @@ export function ProductCard({ product }: ProductCardProps) {
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Image Container */}
-      <div 
+      <div
         className="relative overflow-hidden"
-        style={{ 
-          width: "270px", 
-          height: "250px", 
+        style={{
+          width: "270px",
+          height: "250px",
           background: "var(--color-card-bg)",
-          borderRadius: "4px"
+          borderRadius: "4px",
         }}
       >
         {/* Discount Badge */}
-        {product.discount && (
-          <div 
+        {hasDiscount && (
+          <div
             className="absolute flex flex-row justify-center items-center"
-            style={{ 
-              left: "12px", 
+            style={{
+              left: "12px",
               top: "12px",
               padding: "4px 12px",
               background: "var(--color-discount)",
-              borderRadius: "4px"
+              borderRadius: "4px",
             }}
           >
-            <span 
+            <span
               style={{
                 fontFamily: "'Space Grotesk', sans-serif",
                 fontWeight: 400,
                 fontSize: "12px",
                 lineHeight: "18px",
-                color: "#FAFAFA"
+                color: "#FAFAFA",
               }}
             >
-              -{product.discount}%
+              -{product.discountPercent}%
             </span>
           </div>
         )}
 
         {/* Wishlist Button */}
-        <button 
-          className="absolute"
+        <button
+          className="absolute flex items-center justify-center"
           style={{ right: "12px", top: "12px", width: "34px", height: "34px" }}
+          onClick={handleFavoriteClick}
+          aria-label={
+            localFavorited ? "Remove from favorites" : "Add to favorites"
+          }
         >
-          <Heart 
-            className="text-black" 
-            style={{ width: "24px", height: "24px", margin: "5px" }}
-            strokeWidth={1.5} 
-          />
+          <HeartIcon filled={localFavorited} width={18} height={16.5} />
         </button>
 
         {/* Product Image */}
-        <div 
+        <div
           className="absolute"
-          style={{ 
-            width: "190px", 
-            height: "180px", 
-            left: "calc(50% - 190px/2)", 
-            top: "calc(50% - 180px/2 - 20px)" 
+          style={{
+            width: "190px",
+            height: "180px",
+            left: "calc(50% - 190px/2)",
+            top: "calc(50% - 180px/2 - 20px)",
           }}
         >
           <Image
@@ -83,24 +128,21 @@ export function ProductCard({ product }: ProductCardProps) {
             width={190}
             height={180}
             className="w-full h-full object-contain"
-            style={{ 
-              filter: "drop-shadow(6px 6px 4px rgba(0, 0, 0, 0.25))",
-              transform: "rotate(-15deg)"
-            }}
+            style={imageStyle}
           />
         </div>
 
         {/* Add to Cart Button - Shows on hover for discounted items */}
-        {product.discount && isHovered && (
-          <div 
-            className="absolute flex items-center justify-center"
-            style={{ 
-              left: "0%", 
-              right: "0%", 
+        {hasDiscount && isHovered && (
+          <div
+            className="absolute flex items-center justify-center cursor-pointer"
+            style={{
+              left: "0%",
+              right: "0%",
               bottom: "0px",
               height: "41px",
               background: "#000000",
-              borderRadius: "0px 0px 4px 4px"
+              borderRadius: "0px 0px 4px 4px",
             }}
           >
             <span
@@ -109,7 +151,7 @@ export function ProductCard({ product }: ProductCardProps) {
                 fontWeight: 500,
                 fontSize: "16px",
                 lineHeight: "24px",
-                color: "#FFFFFF"
+                color: "#FFFFFF",
               }}
             >
               Add To Cart
@@ -119,43 +161,37 @@ export function ProductCard({ product }: ProductCardProps) {
       </div>
 
       {/* Product Info */}
-      <div 
-        className="flex flex-col items-start"
-        style={{ gap: "8px" }}
-      >
+      <div className="flex flex-col items-start" style={{ gap: "8px" }}>
         {/* Product Name */}
-        <h3 
+        <h3
           style={{
             width: "181px",
             fontFamily: "'Space Grotesk', sans-serif",
             fontWeight: 500,
             fontSize: "16px",
             lineHeight: "24px",
-            color: "#000000"
+            color: "#000000",
           }}
         >
           {product.name}
         </h3>
 
         {/* Price */}
-        <div 
-          className="flex flex-row items-start"
-          style={{ gap: "12px" }}
-        >
-          {product.originalPrice ? (
+        <div className="flex flex-row items-start" style={{ gap: "12px" }}>
+          {hasDiscount ? (
             <>
-              <span 
+              <span
                 style={{
                   fontFamily: "'Space Grotesk', sans-serif",
                   fontWeight: 500,
                   fontSize: "16px",
                   lineHeight: "24px",
-                  color: "var(--color-discount)"
+                  color: "var(--color-discount)",
                 }}
               >
-                ${product.price}
+                {formatPrice(product.discountedPriceCents!)}
               </span>
-              <span 
+              <span
                 style={{
                   fontFamily: "'Space Grotesk', sans-serif",
                   fontWeight: 500,
@@ -163,34 +199,31 @@ export function ProductCard({ product }: ProductCardProps) {
                   lineHeight: "24px",
                   textDecoration: "line-through",
                   color: "#000000",
-                  opacity: 0.5
+                  opacity: 0.5,
                 }}
               >
-                ${product.originalPrice}
+                {formatPrice(product.priceCents)}
               </span>
             </>
           ) : (
-            <span 
+            <span
               style={{
                 fontFamily: "'Poppins', sans-serif",
                 fontWeight: 500,
                 fontSize: "16px",
                 lineHeight: "24px",
                 color: "#000000",
-                opacity: 0.5
+                opacity: 0.5,
               }}
             >
-              ${product.price}
+              {formatPrice(product.priceCents)}
             </span>
           )}
         </div>
 
         {/* Rating */}
-        <div 
-          className="flex flex-row items-start"
-          style={{ gap: "8px" }}
-        >
-          <div 
+        <div className="flex flex-row items-start" style={{ gap: "8px" }}>
+          <div
             className="flex flex-row items-start"
             style={{ width: "100px", height: "20px" }}
           >
@@ -199,24 +232,24 @@ export function ProductCard({ product }: ProductCardProps) {
                 key={i}
                 style={{ width: "20px", height: "20px" }}
                 className={
-                  i < product.rating
+                  i < product.stars
                     ? "text-star fill-star"
                     : "text-black/25 fill-black/25"
                 }
               />
             ))}
           </div>
-          <span 
+          <span
             style={{
               fontFamily: "'Space Grotesk', sans-serif",
               fontWeight: 700,
               fontSize: "14px",
               lineHeight: "21px",
               color: "#000000",
-              opacity: 0.5
+              opacity: 0.5,
             }}
           >
-            ({product.reviews})
+            ({product.reviewCount})
           </span>
         </div>
       </div>

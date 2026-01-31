@@ -1,35 +1,164 @@
 "use client";
 
-import { useState } from "react";
-import { products } from "@/lib/data/products";
+import { useState, useEffect, useCallback } from "react";
+import { useSession, signIn } from "next-auth/react";
 import { ProductCard } from "@/components/products/ProductCard";
+import type { Product } from "@/lib/types/product";
 
 export function ProductSection() {
-  const [activeTab, setActiveTab] = useState(0);
+  const { data: session, status } = useSession();
+  const [activeTab, setActiveTab] = useState<"new" | "trending">("new");
+  const [products, setProducts] = useState<Product[]>([]);
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
+
+  // Fetch products based on active tab
+  useEffect(() => {
+    async function fetchProducts() {
+      setLoading(true);
+      try {
+        const response = await fetch(`/api/products?filter=${activeTab}`);
+        const data = await response.json();
+        setProducts(data);
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchProducts();
+  }, [activeTab]);
+
+  // Fetch favorites when logged in
+  useEffect(() => {
+    async function fetchFavorites() {
+      if (status !== "authenticated") {
+        setFavorites(new Set());
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/favorites");
+        if (response.status === 401) {
+          setFavorites(new Set());
+          return;
+        }
+        const productIds: string[] = await response.json();
+        setFavorites(new Set(productIds));
+      } catch (error) {
+        console.error("Failed to fetch favorites:", error);
+        setFavorites(new Set());
+      }
+    }
+
+    fetchFavorites();
+  }, [status]);
+
+  // Handle favorite toggle
+  const handleFavoriteToggle = useCallback(
+    async (productId: string, isFavorited: boolean) => {
+      // If not logged in, prompt sign in
+      if (status !== "authenticated") {
+        signIn("google");
+        return;
+      }
+
+      // Optimistic update
+      setFavorites((prev) => {
+        const newSet = new Set(prev);
+        if (isFavorited) {
+          newSet.add(productId);
+        } else {
+          newSet.delete(productId);
+        }
+        return newSet;
+      });
+
+      try {
+        if (isFavorited) {
+          const response = await fetch("/api/favorites", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ productId }),
+          });
+          if (!response.ok) throw new Error("Failed to add favorite");
+        } else {
+          const response = await fetch("/api/favorites", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ productId }),
+          });
+          if (!response.ok) throw new Error("Failed to remove favorite");
+        }
+      } catch (error) {
+        console.error("Failed to toggle favorite:", error);
+        // Revert optimistic update on failure
+        setFavorites((prev) => {
+          const newSet = new Set(prev);
+          if (isFavorited) {
+            newSet.delete(productId);
+          } else {
+            newSet.add(productId);
+          }
+          return newSet;
+        });
+      }
+    },
+    [status]
+  );
+
+  // Split into rows of 4
+  const firstRow = products.slice(0, 4);
+  const secondRow = products.slice(4, 8);
+
+  if (loading) {
+    return (
+      <section className="bg-page-bg">
+        <div
+          className="flex flex-col items-center justify-center mx-auto"
+          style={{
+            width: "1279px",
+            maxWidth: "100%",
+            padding: "0 43px",
+            minHeight: "400px",
+          }}
+        >
+          <span style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            Loading products...
+          </span>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="bg-page-bg">
-      <div 
+      <div
         className="flex flex-col items-start mx-auto"
-        style={{ width: "1279px", maxWidth: "100%", padding: "0 43px", gap: "85px" }}
+        style={{
+          width: "1279px",
+          maxWidth: "100%",
+          padding: "0 43px",
+          gap: "85px",
+        }}
       >
         {/* Tabs */}
-        <div 
-          className="flex flex-row items-start"
-          style={{ gap: "36px" }}
-        >
+        <div className="flex flex-row items-start" style={{ gap: "36px" }}>
           {/* New Arrivals Button */}
           <button
-            onClick={() => setActiveTab(0)}
-            className="flex flex-row justify-center items-center"
+            onClick={() => setActiveTab("new")}
+            className="flex flex-row justify-center items-center transition-all duration-200"
             style={{
-              width: "215px",
+              minWidth: "215px",
               height: "57px",
               padding: "16px 33px",
-              background: activeTab === 0 ? "#4A4C6C" : "transparent",
-              border: activeTab === 0 ? "4px solid #7C7EA2" : "4px solid #4A4C6C",
-              boxShadow: activeTab === 0 ? "0px 5px 8px rgba(74, 76, 108, 0.4)" : "none",
-              borderRadius: "100px"
+              background: activeTab === "new" ? "#4A4C6C" : "transparent",
+              border:
+                activeTab === "new"
+                  ? "4px solid #7C7EA2"
+                  : "3px solid #4A4C6C",
+              borderRadius: "100px",
             }}
           >
             <span
@@ -37,10 +166,9 @@ export function ProductSection() {
                 fontFamily: "'Cabinet Grotesk', sans-serif",
                 fontWeight: 700,
                 fontSize: "20px",
-                lineHeight: "25px",
+                lineHeight: "100%",
                 letterSpacing: "0.05em",
-                textTransform: "capitalize",
-                color: activeTab === 0 ? "#F4F4F4" : "#4A4C6C"
+                color: activeTab === "new" ? "#FFFFFF" : "#4A4C6C",
               }}
             >
               NEW ARRIVALS
@@ -49,16 +177,18 @@ export function ProductSection() {
 
           {/* What's Trending Button */}
           <button
-            onClick={() => setActiveTab(1)}
-            className="flex flex-row justify-center items-center"
+            onClick={() => setActiveTab("trending")}
+            className="flex flex-row justify-center items-center transition-all duration-200"
             style={{
-              width: "250px",
+              minWidth: "250px",
               height: "57px",
               padding: "16px 33px",
-              background: activeTab === 1 ? "#77794E" : "transparent",
-              border: activeTab === 1 ? "4px solid #9FA26D" : "4px solid #77794E",
-              boxShadow: activeTab === 1 ? "0px 5px 8px rgba(119, 121, 78, 0.4)" : "none",
-              borderRadius: "100px"
+              background: activeTab === "trending" ? "#9FA16D" : "transparent",
+              border:
+                activeTab === "trending"
+                  ? "4px solid #BFC18D"
+                  : "3px solid #9FA16D",
+              borderRadius: "100px",
             }}
           >
             <span
@@ -66,10 +196,9 @@ export function ProductSection() {
                 fontFamily: "'Cabinet Grotesk', sans-serif",
                 fontWeight: 700,
                 fontSize: "20px",
-                lineHeight: "25px",
+                lineHeight: "100%",
                 letterSpacing: "0.05em",
-                textTransform: "capitalize",
-                color: activeTab === 1 ? "#F4F4F4" : "#77794E"
+                color: activeTab === "trending" ? "#FFFFFF" : "#9FA16D",
               }}
             >
               {"WHAT'S TRENDING"}
@@ -78,29 +207,47 @@ export function ProductSection() {
         </div>
 
         {/* Product Grid */}
-        <div 
-          className="flex flex-col items-start"
-          style={{ gap: "50px" }}
-        >
+        <div className="flex flex-col items-start" style={{ gap: "50px" }}>
           {/* First Row */}
-          <div 
-            className="flex flex-row items-end"
-            style={{ gap: "66px" }}
-          >
-            {products.slice(0, 4).map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          {firstRow.length > 0 && (
+            <div className="flex flex-row items-end" style={{ gap: "66px" }}>
+              {firstRow.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  isFavorited={favorites.has(product.id)}
+                  onFavoriteToggle={handleFavoriteToggle}
+                />
+              ))}
+            </div>
+          )}
 
           {/* Second Row */}
-          <div 
-            className="flex flex-row items-end"
-            style={{ gap: "66px" }}
-          >
-            {products.slice(4, 8).map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          {secondRow.length > 0 && (
+            <div className="flex flex-row items-end" style={{ gap: "66px" }}>
+              {secondRow.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  isFavorited={favorites.has(product.id)}
+                  onFavoriteToggle={handleFavoriteToggle}
+                />
+              ))}
+            </div>
+          )}
+
+          {products.length === 0 && (
+            <div className="flex items-center justify-center w-full py-8">
+              <span
+                style={{
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  color: "#666",
+                }}
+              >
+                No products found.
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </section>
