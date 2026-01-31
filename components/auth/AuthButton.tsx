@@ -1,11 +1,18 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { signInWithGoogle, signOutUser } from "@/lib/actions/auth";
 
 export function AuthButton() {
+  const router = useRouter();
   const { data: session, status } = useSession();
+
+  const handleSignOut = async () => {
+    await signOutUser();
+    router.refresh();
+  };
 
   if (status === "loading") {
     return (
@@ -38,7 +45,7 @@ export function AuthButton() {
             className="rounded-full"
           />
         )}
-        <form action={signOutUser}>
+        <form action={handleSignOut}>
           <button
             type="submit"
             className="flex items-center justify-center px-3 py-1.5 rounded-full transition-colors hover:bg-black/5"
