@@ -1,7 +1,8 @@
 "use client";
 
-import { Heart, ShoppingCart, User } from "lucide-react";
+import { ShoppingCart, User } from "lucide-react";
 import Link from "next/link";
+import { HeartIcon } from "@/components/ui/heart-icon";
 
 const navLinks = [
   { name: "Women", href: "/women" },
@@ -78,13 +79,14 @@ export function Header() {
           style={{ gap: "24px" }}
         >
           <button 
-            className="flex flex-col items-start justify-center"
-            style={{ width: "24px", height: "24.5px", padding: "4px 3px" }}
+            className="flex items-center justify-center"
+            style={{ width: "24px", height: "24.5px" }}
+            aria-label="Wishlist"
           >
-            <Heart 
-              className="text-dark" 
-              style={{ width: "18px", height: "16.5px" }}
-              strokeWidth={1.5} 
+            <HeartIcon 
+              filled={false}
+              width={18}
+              height={16.5}
             />
           </button>
           <button style={{ width: "24px", height: "24px" }}>

@@ -1,9 +1,11 @@
 "use client";
 
-import { Heart, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import type { Product } from "@/lib/data/products";
+import { HeartIcon } from "@/components/ui/heart-icon";
+import { favoritesEvents } from "@/lib/events/favorites";
 
 interface ProductCardProps {
   product: Product;
@@ -11,6 +13,13 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
+
+  const handleFavoriteClick = () => {
+    const newFavoriteState = !isFavorited;
+    setIsFavorited(newFavoriteState);
+    favoritesEvents.emit(product.id, newFavoriteState);
+  };
 
   return (
     <div
@@ -57,13 +66,15 @@ export function ProductCard({ product }: ProductCardProps) {
 
         {/* Wishlist Button */}
         <button 
-          className="absolute"
+          className="absolute flex items-center justify-center"
           style={{ right: "12px", top: "12px", width: "34px", height: "34px" }}
+          onClick={handleFavoriteClick}
+          aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
         >
-          <Heart 
-            className="text-black" 
-            style={{ width: "24px", height: "24px", margin: "5px" }}
-            strokeWidth={1.5} 
+          <HeartIcon 
+            filled={isFavorited}
+            width={18}
+            height={16.5}
           />
         </button>
 
