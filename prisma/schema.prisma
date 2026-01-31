@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id                  String     @id @default(uuid())
+  name                String
+  priceCents          Int
+  discountedPriceCents Int?
+  rating              Float      @default(0)
+  reviewCount         Int        @default(0)
+  imageUrl            String
+  imageTransform      Json?      @db.JsonB
+  category            String     @default("new-arrivals")
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+  favorites           Favorite[]
+}
+
+model Favorite {
+  id        String   @id @default(uuid())
+  userId    String   @default("guest")
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+}
