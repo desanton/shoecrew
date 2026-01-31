@@ -1,6 +1,7 @@
 "use client";
 
 import { ShoppingCart } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { HeartIcon } from "@/components/ui/heart-icon";
 import { AuthButton } from "@/components/auth/AuthButton";
@@ -28,24 +29,15 @@ export function Header() {
       >
         {/* Logo and Nav */}
         <div className="flex flex-row items-end gap-6">
-          {/* Logo - 30x30 black square */}
+          {/* Logo */}
           <Link href="/" className="flex items-center">
-            <div className="bg-dark" style={{ width: "30px", height: "30px" }}>
-              {/* Bird icon placeholder */}
-              <svg
-                width="30"
-                height="30"
-                viewBox="0 0 30 30"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <rect width="30" height="30" fill="#181818" />
-                <path
-                  d="M5 12L9 8L13 12L15 6L17 12L21 8L25 12L21 18H9L5 12Z"
-                  fill="white"
-                />
-              </svg>
-            </div>
+            <Image
+              src="/ShoeCrewLogo.png"
+              alt="ShoeCrew Logo"
+              width={30}
+              height={30}
+              priority
+            />
           </Link>
 
           {/* Navigation */}

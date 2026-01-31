@@ -171,6 +171,9 @@ export function ProductCard({
             fontSize: "16px",
             lineHeight: "24px",
             color: "#000000",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
           }}
         >
           {product.name}
