@@ -1,18 +1,38 @@
-import { prisma } from "@/lib/prisma";
+import { neon } from "@neondatabase/serverless";
 import { NextResponse } from "next/server";
 
+const sql = neon(process.env.DATABASE_URL!);
 const USER_ID = "guest";
 
 // GET /api/favorites - Get all favorites for guest user
 export async function GET() {
   try {
-    const favorites = await prisma.favorite.findMany({
-      where: { userId: USER_ID },
-      include: { product: true },
-      orderBy: { createdAt: "desc" },
-    });
+    const favorites = await sql`
+      SELECT f.*, p.* 
+      FROM "Favorite" f 
+      JOIN "Product" p ON f."productId" = p.id 
+      WHERE f."userId" = ${USER_ID}
+      ORDER BY f."createdAt" DESC
+    `;
 
-    return NextResponse.json(favorites);
+    // Transform to product format with isFavorited flag
+    const transformedFavorites = favorites.map((row) => ({
+      id: row.productId,
+      name: row.name,
+      price: row.discountedPriceCents 
+        ? row.discountedPriceCents / 100 
+        : row.priceCents / 100,
+      originalPrice: row.discountedPriceCents 
+        ? row.priceCents / 100 
+        : null,
+      discount: row.discountPercent,
+      rating: Math.floor(row.rating),
+      reviews: row.reviewCount,
+      image: row.imagePath,
+      isFavorited: true,
+    }));
+
+    return NextResponse.json(transformedFavorites);
   } catch (error) {
     console.error("Failed to fetch favorites:", error);
     return NextResponse.json(
@@ -35,31 +55,22 @@ export async function POST(request: Request) {
     }
 
     // Check if product exists
-    const product = await prisma.product.findUnique({
-      where: { id: productId },
-    });
+    const product = await sql`
+      SELECT * FROM "Product" WHERE id = ${productId}
+    `;
 
-    if (!product) {
+    if (product.length === 0) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
-    // Create or find existing favorite (upsert-like behavior)
-    const favorite = await prisma.favorite.upsert({
-      where: {
-        userId_productId: {
-          userId: USER_ID,
-          productId,
-        },
-      },
-      update: {},
-      create: {
-        userId: USER_ID,
-        productId,
-      },
-      include: { product: true },
-    });
+    // Insert favorite (ignore if already exists)
+    await sql`
+      INSERT INTO "Favorite" ("userId", "productId")
+      VALUES (${USER_ID}, ${productId})
+      ON CONFLICT ("userId", "productId") DO NOTHING
+    `;
 
-    return NextResponse.json(favorite, { status: 201 });
+    return NextResponse.json({ success: true, productId }, { status: 201 });
   } catch (error) {
     console.error("Failed to add favorite:", error);
     return NextResponse.json(
@@ -82,14 +93,10 @@ export async function DELETE(request: Request) {
       );
     }
 
-    await prisma.favorite.delete({
-      where: {
-        userId_productId: {
-          userId: USER_ID,
-          productId,
-        },
-      },
-    });
+    await sql`
+      DELETE FROM "Favorite" 
+      WHERE "userId" = ${USER_ID} AND "productId" = ${productId}
+    `;
 
     return NextResponse.json({ success: true });
   } catch (error) {

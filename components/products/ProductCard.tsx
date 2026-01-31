@@ -3,23 +3,29 @@
 import { Star } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import type { Product } from "@/lib/data/products";
+import type { Product } from "@/lib/types/product";
 import { HeartIcon } from "@/components/ui/heart-icon";
-import { favoritesEvents } from "@/lib/events/favorites";
 
 interface ProductCardProps {
   product: Product;
+  isFavorited?: boolean;
+  onFavoriteToggle?: (productId: string, isFavorited: boolean) => void;
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, isFavorited = false, onFavoriteToggle }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
-  const [isFavorited, setIsFavorited] = useState(false);
+  const [localFavorited, setLocalFavorited] = useState(isFavorited);
 
   const handleFavoriteClick = () => {
-    const newFavoriteState = !isFavorited;
-    setIsFavorited(newFavoriteState);
-    favoritesEvents.emit(product.id, newFavoriteState);
+    const newFavoriteState = !localFavorited;
+    setLocalFavorited(newFavoriteState);
+    onFavoriteToggle?.(product.id, newFavoriteState);
   };
+
+  // Sync local state with props
+  if (isFavorited !== localFavorited && onFavoriteToggle) {
+    setLocalFavorited(isFavorited);
+  }
 
   return (
     <div
@@ -69,10 +75,10 @@ export function ProductCard({ product }: ProductCardProps) {
           className="absolute flex items-center justify-center"
           style={{ right: "12px", top: "12px", width: "34px", height: "34px" }}
           onClick={handleFavoriteClick}
-          aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+          aria-label={localFavorited ? "Remove from favorites" : "Add to favorites"}
         >
           <HeartIcon 
-            filled={isFavorited}
+            filled={localFavorited}
             width={18}
             height={16.5}
           />
@@ -104,7 +110,7 @@ export function ProductCard({ product }: ProductCardProps) {
         {/* Add to Cart Button - Shows on hover for discounted items */}
         {product.discount && isHovered && (
           <div 
-            className="absolute flex items-center justify-center"
+            className="absolute flex items-center justify-center cursor-pointer"
             style={{ 
               left: "0%", 
               right: "0%", 

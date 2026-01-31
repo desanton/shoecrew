@@ -1,12 +1,104 @@
 "use client";
 
-import { useState } from "react";
-import { products } from "@/lib/data/products";
+import { useState, useEffect } from "react";
 import { ProductCard } from "@/components/products/ProductCard";
+import type { Product } from "@/lib/types/product";
 
 export function ProductSection() {
   const [newArrivalsActive, setNewArrivalsActive] = useState(true);
   const [trendingActive, setTrendingActive] = useState(true);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
+
+  // Fetch products from API
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const response = await fetch("/api/products");
+        const data = await response.json();
+        setProducts(data);
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchProducts();
+  }, []);
+
+  // Fetch favorites from API
+  useEffect(() => {
+    async function fetchFavorites() {
+      try {
+        const response = await fetch("/api/favorites");
+        const data = await response.json();
+        const favoriteIds = new Set<string>(data.map((f: Product) => f.id));
+        setFavorites(favoriteIds);
+      } catch (error) {
+        console.error("Failed to fetch favorites:", error);
+      }
+    }
+
+    fetchFavorites();
+  }, []);
+
+  // Handle favorite toggle
+  const handleFavoriteToggle = async (productId: string, isFavorited: boolean) => {
+    try {
+      if (isFavorited) {
+        await fetch("/api/favorites", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productId }),
+        });
+        setFavorites((prev) => new Set([...prev, productId]));
+      } else {
+        await fetch(`/api/favorites?productId=${productId}`, {
+          method: "DELETE",
+        });
+        setFavorites((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(productId);
+          return newSet;
+        });
+      }
+    } catch (error) {
+      console.error("Failed to toggle favorite:", error);
+    }
+  };
+
+  // Filter products based on active tabs
+  const filteredProducts = products.filter((product) => {
+    if (newArrivalsActive && trendingActive) {
+      return product.isNewArrival || product.isTrending;
+    }
+    if (newArrivalsActive) {
+      return product.isNewArrival;
+    }
+    if (trendingActive) {
+      return product.isTrending;
+    }
+    return false;
+  });
+
+  // Split into rows of 4
+  const firstRow = filteredProducts.slice(0, 4);
+  const secondRow = filteredProducts.slice(4, 8);
+
+  if (loading) {
+    return (
+      <section className="bg-page-bg">
+        <div 
+          className="flex flex-col items-center justify-center mx-auto"
+          style={{ width: "1279px", maxWidth: "100%", padding: "0 43px", minHeight: "400px" }}
+        >
+          <span style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Loading products...</span>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="bg-page-bg">
@@ -80,24 +172,46 @@ export function ProductSection() {
           style={{ gap: "50px" }}
         >
           {/* First Row */}
-          <div 
-            className="flex flex-row items-end"
-            style={{ gap: "66px" }}
-          >
-            {products.slice(0, 4).map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          {firstRow.length > 0 && (
+            <div 
+              className="flex flex-row items-end"
+              style={{ gap: "66px" }}
+            >
+              {firstRow.map((product) => (
+                <ProductCard 
+                  key={product.id} 
+                  product={product}
+                  isFavorited={favorites.has(product.id)}
+                  onFavoriteToggle={handleFavoriteToggle}
+                />
+              ))}
+            </div>
+          )}
 
           {/* Second Row */}
-          <div 
-            className="flex flex-row items-end"
-            style={{ gap: "66px" }}
-          >
-            {products.slice(4, 8).map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          {secondRow.length > 0 && (
+            <div 
+              className="flex flex-row items-end"
+              style={{ gap: "66px" }}
+            >
+              {secondRow.map((product) => (
+                <ProductCard 
+                  key={product.id} 
+                  product={product}
+                  isFavorited={favorites.has(product.id)}
+                  onFavoriteToggle={handleFavoriteToggle}
+                />
+              ))}
+            </div>
+          )}
+
+          {filteredProducts.length === 0 && (
+            <div className="flex items-center justify-center w-full py-8">
+              <span style={{ fontFamily: "'Space Grotesk', sans-serif", color: "#666" }}>
+                No products found. Select a filter above.
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </section>

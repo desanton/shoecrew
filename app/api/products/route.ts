@@ -1,32 +1,54 @@
-import { prisma } from "@/lib/prisma";
+import { neon } from "@neondatabase/serverless";
 import { NextResponse } from "next/server";
+
+const sql = neon(process.env.DATABASE_URL!);
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get("category");
+    const isNewArrival = searchParams.get("isNewArrival");
+    const isTrending = searchParams.get("isTrending");
 
-    const where = category ? { category } : {};
+    let query = `SELECT * FROM "Product"`;
+    const conditions: string[] = [];
 
-    const products = await prisma.product.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-    });
+    if (category) {
+      conditions.push(`category = '${category}'`);
+    }
+    if (isNewArrival === "true") {
+      conditions.push(`"isNewArrival" = true`);
+    }
+    if (isTrending === "true") {
+      conditions.push(`"isTrending" = true`);
+    }
+
+    if (conditions.length > 0) {
+      query += ` WHERE ${conditions.join(" AND ")}`;
+    }
+
+    query += ` ORDER BY "createdAt" DESC`;
+
+    const products = await sql(query);
 
     // Transform priceCents to dollars for frontend
     const transformedProducts = products.map((product) => ({
-      ...product,
-      price: product.priceCents / 100,
-      discountedPrice: product.discountedPriceCents
-        ? product.discountedPriceCents / 100
+      id: product.id,
+      name: product.name,
+      price: product.discountedPriceCents 
+        ? product.discountedPriceCents / 100 
+        : product.priceCents / 100,
+      originalPrice: product.discountedPriceCents 
+        ? product.priceCents / 100 
         : null,
-      discountPercentage: product.discountedPriceCents
-        ? Math.round(
-            ((product.priceCents - product.discountedPriceCents) /
-              product.priceCents) *
-              100
-          )
-        : null,
+      discount: product.discountPercent,
+      rating: Math.floor(product.rating),
+      reviews: product.reviewCount,
+      image: product.imagePath,
+      imageTransform: product.imageTransform,
+      category: product.category,
+      isTrending: product.isTrending,
+      isNewArrival: product.isNewArrival,
     }));
 
     return NextResponse.json(transformedProducts);
