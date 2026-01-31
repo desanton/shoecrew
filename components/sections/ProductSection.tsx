@@ -7,17 +7,32 @@ import type { Product } from "@/lib/types/product";
 
 export function ProductSection() {
   const { data: session, status } = useSession();
-  const [activeTab, setActiveTab] = useState<"new" | "trending">("new");
+  const [activeFilters, setActiveFilters] = useState<{ new: boolean; trending: boolean }>({
+    new: false,
+    trending: false,
+  });
   const [products, setProducts] = useState<Product[]>([]);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
-  // Fetch products based on active tab
+  // Handle filter toggle
+  const toggleFilter = (filter: "new" | "trending") => {
+    setActiveFilters((prev) => ({
+      ...prev,
+      [filter]: !prev[filter],
+    }));
+  };
+
+  // Fetch products based on active filters
   useEffect(() => {
     async function fetchProducts() {
       setLoading(true);
       try {
-        const response = await fetch(`/api/products?filter=${activeTab}`);
+        const params = new URLSearchParams();
+        if (activeFilters.new) params.append("new", "true");
+        if (activeFilters.trending) params.append("trending", "true");
+        
+        const response = await fetch(`/api/products?${params.toString()}`);
         const data = await response.json();
         setProducts(data);
       } catch (error) {
@@ -28,7 +43,7 @@ export function ProductSection() {
     }
 
     fetchProducts();
-  }, [activeTab]);
+  }, [activeFilters]);
 
   // Fetch favorites when logged in
   useEffect(() => {
@@ -149,19 +164,19 @@ export function ProductSection() {
           gap: "85px",
         }}
       >
-        {/* Tabs */}
+        {/* Filters */}
         <div className="flex flex-row items-start" style={{ gap: "36px" }}>
           {/* New Arrivals Button */}
           <button
-            onClick={() => setActiveTab("new")}
+            onClick={() => toggleFilter("new")}
             className="flex flex-row justify-center items-center transition-all duration-200"
             style={{
               minWidth: "215px",
               height: "57px",
               padding: "16px 33px",
-              background: activeTab === "new" ? "#4A4C6C" : "transparent",
+              background: activeFilters.new ? "#4A4C6C" : "transparent",
               border:
-                activeTab === "new"
+                activeFilters.new
                   ? "4px solid #7C7EA2"
                   : "3px solid #4A4C6C",
               borderRadius: "100px",
@@ -174,7 +189,7 @@ export function ProductSection() {
                 fontSize: "20px",
                 lineHeight: "100%",
                 letterSpacing: "0.05em",
-                color: activeTab === "new" ? "#FFFFFF" : "#4A4C6C",
+                color: activeFilters.new ? "#FFFFFF" : "#4A4C6C",
               }}
             >
               NEW ARRIVALS
@@ -183,15 +198,15 @@ export function ProductSection() {
 
           {/* What's Trending Button */}
           <button
-            onClick={() => setActiveTab("trending")}
+            onClick={() => toggleFilter("trending")}
             className="flex flex-row justify-center items-center transition-all duration-200"
             style={{
               minWidth: "250px",
               height: "57px",
               padding: "16px 33px",
-              background: activeTab === "trending" ? "#9FA16D" : "transparent",
+              background: activeFilters.trending ? "#9FA16D" : "transparent",
               border:
-                activeTab === "trending"
+                activeFilters.trending
                   ? "4px solid #BFC18D"
                   : "3px solid #9FA16D",
               borderRadius: "100px",
@@ -204,7 +219,7 @@ export function ProductSection() {
                 fontSize: "20px",
                 lineHeight: "100%",
                 letterSpacing: "0.05em",
-                color: activeTab === "trending" ? "#FFFFFF" : "#9FA16D",
+                color: activeFilters.trending ? "#FFFFFF" : "#9FA16D",
               }}
             >
               {"WHAT'S TRENDING"}

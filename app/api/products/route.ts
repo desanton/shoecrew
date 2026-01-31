@@ -19,15 +19,22 @@ export async function GET(request: Request) {
   try {
     const sql = getSql();
     const { searchParams } = new URL(request.url);
-    const filter = searchParams.get("filter");
+    const hasNewFilter = searchParams.has("new");
+    const hasTrendingFilter = searchParams.has("trending");
 
     let products: ProductRow[];
 
-    if (filter === "new") {
+    if (hasNewFilter && hasTrendingFilter) {
+      // Both filters active - AND logic
+      products = await sql`SELECT * FROM "Product" WHERE "isNewArrival" = true AND "isTrending" = true ORDER BY "sortOrder" ASC`;
+    } else if (hasNewFilter) {
+      // Only new filter
       products = await sql`SELECT * FROM "Product" WHERE "isNewArrival" = true ORDER BY "sortOrder" ASC`;
-    } else if (filter === "trending") {
+    } else if (hasTrendingFilter) {
+      // Only trending filter
       products = await sql`SELECT * FROM "Product" WHERE "isTrending" = true ORDER BY "sortOrder" ASC`;
     } else {
+      // No filters - show all
       products = await sql`SELECT * FROM "Product" ORDER BY "sortOrder" ASC`;
     }
 
