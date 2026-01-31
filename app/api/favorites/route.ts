@@ -1,38 +1,29 @@
-import { neon } from "@neondatabase/serverless";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-const sql = neon(process.env.DATABASE_URL!);
-const USER_ID = "guest";
-
-// GET /api/favorites - Get all favorites for guest user
+// GET /api/favorites - Get all favorite productIds for authenticated user
 export async function GET() {
   try {
-    const favorites = await sql`
-      SELECT f.*, p.* 
-      FROM "Favorite" f 
-      JOIN "Product" p ON f."productId" = p.id 
-      WHERE f."userId" = ${USER_ID}
-      ORDER BY f."createdAt" DESC
-    `;
+    const session = await getServerSession(authOptions);
 
-    // Transform to product format with isFavorited flag
-    const transformedFavorites = favorites.map((row) => ({
-      id: row.productId,
-      name: row.name,
-      price: row.discountedPriceCents 
-        ? row.discountedPriceCents / 100 
-        : row.priceCents / 100,
-      originalPrice: row.discountedPriceCents 
-        ? row.priceCents / 100 
-        : null,
-      discount: row.discountPercent,
-      rating: Math.floor(row.rating),
-      reviews: row.reviewCount,
-      image: row.imagePath,
-      isFavorited: true,
-    }));
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
 
-    return NextResponse.json(transformedFavorites);
+    const favorites = await prisma.favorite.findMany({
+      where: { userId: session.user.id },
+      select: { productId: true },
+    });
+
+    // Return only productIds as string[]
+    const productIds = favorites.map((f) => f.productId);
+
+    return NextResponse.json(productIds);
   } catch (error) {
     console.error("Failed to fetch favorites:", error);
     return NextResponse.json(
@@ -45,6 +36,15 @@ export async function GET() {
 // POST /api/favorites - Add a product to favorites
 export async function POST(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const { productId } = await request.json();
 
     if (!productId) {
@@ -55,20 +55,31 @@ export async function POST(request: Request) {
     }
 
     // Check if product exists
-    const product = await sql`
-      SELECT * FROM "Product" WHERE id = ${productId}
-    `;
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+    });
 
-    if (product.length === 0) {
-      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    if (!product) {
+      return NextResponse.json(
+        { error: "Product not found" },
+        { status: 404 }
+      );
     }
 
-    // Insert favorite (ignore if already exists)
-    await sql`
-      INSERT INTO "Favorite" ("userId", "productId")
-      VALUES (${USER_ID}, ${productId})
-      ON CONFLICT ("userId", "productId") DO NOTHING
-    `;
+    // Upsert to handle unique constraint safely
+    await prisma.favorite.upsert({
+      where: {
+        userId_productId: {
+          userId: session.user.id,
+          productId,
+        },
+      },
+      create: {
+        userId: session.user.id,
+        productId,
+      },
+      update: {},
+    });
 
     return NextResponse.json({ success: true, productId }, { status: 201 });
   } catch (error) {
@@ -83,8 +94,16 @@ export async function POST(request: Request) {
 // DELETE /api/favorites - Remove a product from favorites
 export async function DELETE(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const productId = searchParams.get("productId");
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const { productId } = await request.json();
 
     if (!productId) {
       return NextResponse.json(
@@ -93,10 +112,12 @@ export async function DELETE(request: Request) {
       );
     }
 
-    await sql`
-      DELETE FROM "Favorite" 
-      WHERE "userId" = ${USER_ID} AND "productId" = ${productId}
-    `;
+    await prisma.favorite.deleteMany({
+      where: {
+        userId: session.user.id,
+        productId,
+      },
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

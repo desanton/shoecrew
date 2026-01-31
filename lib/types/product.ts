@@ -1,15 +1,22 @@
+export interface ImageTransform {
+  rotationDeg?: number;
+  scale?: number;
+  shiftX?: number;
+  shiftY?: number;
+  mirrorX?: boolean;
+}
+
 export interface Product {
   id: string;
   name: string;
-  price: number;
-  originalPrice: number | null;
-  discount: number | null;
-  rating: number;
-  reviews: number;
+  priceCents: number;
+  discountedPriceCents: number | null;
+  discountPercent: number | null;
+  stars: number;
+  reviewCount: number;
   image: string;
-  imageTransform?: Record<string, unknown> | null;
-  category: string;
-  isTrending: boolean;
+  imageTransform: ImageTransform | null;
   isNewArrival: boolean;
-  isFavorited?: boolean;
+  isTrending: boolean;
+  sortOrder: number;
 }
