@@ -1,21 +1,20 @@
-import NextAuth from "next-auth";
 import { authOptions } from "@/lib/auth";
-import type { NextRequest } from "next/server";
+import NextAuth from "next-auth";
 
-const handler = NextAuth(authOptions);
+// NextAuth v4 with Next.js 15/16 compatibility
+// Create handler with authOptions
+const auth = NextAuth(authOptions);
 
-export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ nextauth: string[] }> }
-) {
-  const params = await context.params;
-  return handler(request, { params: { nextauth: params.nextauth } });
+// Wrap handlers to ensure searchParams are resolved
+export async function GET(req: Request) {
+  // Force URL parsing to ensure searchParams are available
+  const url = new URL(req.url);
+  const _searchParams = url.searchParams;
+  return auth(req as any, { params: { nextauth: url.pathname.split("/").slice(3) } } as any);
 }
 
-export async function POST(
-  request: NextRequest,
-  context: { params: Promise<{ nextauth: string[] }> }
-) {
-  const params = await context.params;
-  return handler(request, { params: { nextauth: params.nextauth } });
+export async function POST(req: Request) {
+  const url = new URL(req.url);
+  const _searchParams = url.searchParams;
+  return auth(req as any, { params: { nextauth: url.pathname.split("/").slice(3) } } as any);
 }
