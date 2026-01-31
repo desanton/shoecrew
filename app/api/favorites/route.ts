@@ -3,24 +3,13 @@ import { getSql } from "@/lib/db";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// Helper to get session from request
-async function getSessionFromRequest(request: NextRequest) {
-  try {
-    const session = await auth();
-    return session;
-  } catch (error) {
-    console.error("Failed to get session:", error);
-    return null;
-  }
-}
-
 // GET /api/favorites - Get all favorite productIds for authenticated user
 export async function GET(request: NextRequest) {
   try {
-    const session = await getSessionFromRequest(request);
-
+    const session = await auth();
+    
     if (!session?.user?.id) {
-      console.log("No session or user ID");
+      console.log("GET: No session");
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
@@ -36,7 +25,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(productIds);
   } catch (error) {
-    console.error("Failed to fetch favorites:", error);
+    console.error("GET /api/favorites failed:", error);
     return NextResponse.json(
       { error: "Failed to fetch favorites" },
       { status: 500 }
@@ -47,10 +36,11 @@ export async function GET(request: NextRequest) {
 // POST /api/favorites - Add a product to favorites
 export async function POST(request: NextRequest) {
   try {
-    const session = await getSessionFromRequest(request);
+    const session = await auth();
+    console.log("POST: session =", session);
 
     if (!session?.user?.id) {
-      console.log("No session or user ID in POST");
+      console.log("POST: No session or user ID");
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
@@ -88,7 +78,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, productId }, { status: 201 });
   } catch (error) {
-    console.error("Failed to add favorite:", error);
+    console.error("POST /api/favorites failed:", error);
     return NextResponse.json(
       { error: "Failed to add favorite" },
       { status: 500 }
@@ -99,10 +89,9 @@ export async function POST(request: NextRequest) {
 // DELETE /api/favorites - Remove a product from favorites
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await getSessionFromRequest(request);
+    const session = await auth();
 
     if (!session?.user?.id) {
-      console.log("No session or user ID in DELETE");
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
@@ -125,7 +114,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Failed to remove favorite:", error);
+    console.error("DELETE /api/favorites failed:", error);
     return NextResponse.json(
       { error: "Failed to remove favorite" },
       { status: 500 }
