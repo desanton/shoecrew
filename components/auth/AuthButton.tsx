@@ -1,17 +1,20 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession, signOut as nextAuthSignOut } from "next-auth/react";
 import Image from "next/image";
-import { signInWithGoogle, signOutUser } from "@/lib/actions/auth";
+import { signInWithGoogle } from "@/lib/actions/auth";
 
 export function AuthButton() {
   const router = useRouter();
   const { data: session, status } = useSession();
 
   const handleSignOut = async () => {
-    await signOutUser();
+    // Call the client-side signOut to clear the session immediately
+    await nextAuthSignOut({ redirect: false });
+    // Then refresh the page
     router.refresh();
+    router.push("/");
   };
 
   if (status === "loading") {
