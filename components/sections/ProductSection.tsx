@@ -82,14 +82,20 @@ export function ProductSection() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ productId }),
           });
-          if (!response.ok) throw new Error("Failed to add favorite");
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Failed to add favorite: ${response.status} - ${errorData.error}`);
+          }
         } else {
           const response = await fetch("/api/favorites", {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ productId }),
           });
-          if (!response.ok) throw new Error("Failed to remove favorite");
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Failed to remove favorite: ${response.status} - ${errorData.error}`);
+          }
         }
       } catch (error) {
         console.error("Failed to toggle favorite:", error);
