@@ -8,7 +8,7 @@ import { FeaturesSection } from "@/components/sections/FeaturesSection";
 export default function HomePage() {
   return (
     <main 
-      className="flex flex-col items-center mx-auto bg-[#F4F4F4]"
+      className="flex flex-col items-center mx-auto bg-page-bg"
       style={{ 
         width: "1440px",
         maxWidth: "100%",

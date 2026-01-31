@@ -8,7 +8,7 @@ export function ProductSection() {
   const [activeTab, setActiveTab] = useState(0);
 
   return (
-    <section className="bg-[#F4F4F4]">
+    <section className="bg-page-bg">
       <div 
         className="flex flex-col items-start mx-auto"
         style={{ width: "1279px", maxWidth: "100%", padding: "0 43px", gap: "85px" }}
