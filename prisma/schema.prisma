@@ -9,7 +9,7 @@ datasource db {
 
 // Auth.js / NextAuth models
 model User {
-  id            String    @id @default(uuid())
+  id            String    @id
   name          String?
   email         String?   @unique
   emailVerified DateTime?
@@ -17,12 +17,10 @@ model User {
   accounts      Account[]
   sessions      Session[]
   favorites     Favorite[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
 }
 
 model Account {
-  id                String  @id @default(uuid())
+  id                String  @id
   userId            String
   type              String
   provider          String
@@ -40,7 +38,7 @@ model Account {
 }
 
 model Session {
-  id           String   @id @default(uuid())
+  id           String   @id
   sessionToken String   @unique
   userId       String
   expires      DateTime
@@ -57,7 +55,7 @@ model VerificationToken {
 
 // App models
 model Product {
-  id                   String     @id @default(uuid())
+  id                   String     @id
   name                 String
   imageFileName        String
   priceCents           Int
@@ -66,21 +64,18 @@ model Product {
   stars                Int        @default(5)
   reviewCount          Int        @default(0)
   sortOrder            Int        @default(0)
-  isNewArrival         Boolean    @default(true)
+  isNewArrival         Boolean    @default(false)
   isTrending           Boolean    @default(false)
   imageTransform       Json?
   favorites            Favorite[]
-  createdAt            DateTime   @default(now())
-  updatedAt            DateTime   @updatedAt
 }
 
 model Favorite {
-  id        String   @id @default(uuid())
+  id        String  @id
   userId    String
   productId String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
 }
