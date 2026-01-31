@@ -132,8 +132,8 @@ export function ProductCard({
           />
         </div>
 
-        {/* Add to Cart Button - Shows on hover for discounted items */}
-        {hasDiscount && isHovered && (
+        {/* Add to Cart Button - Shows on hover */}
+        {isHovered && (
           <div
             className="absolute flex items-center justify-center cursor-pointer"
             style={{
