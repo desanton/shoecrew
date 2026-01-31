@@ -1,0 +1,59 @@
+import NextAuth from "next-auth";
+import Google from "next-auth/providers/google";
+import { sql } from "@/lib/db";
+
+export const { handlers, signIn, signOut, auth } = NextAuth({
+  providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+  ],
+  session: {
+    strategy: "jwt",
+  },
+  callbacks: {
+    async signIn({ user, account }) {
+      if (!user.email) return false;
+      
+      try {
+        // Check if user exists
+        const existingUsers = await sql`
+          SELECT id FROM "User" WHERE email = ${user.email}
+        `;
+        
+        if (existingUsers.length === 0) {
+          // Create new user
+          await sql`
+            INSERT INTO "User" (id, name, email, image)
+            VALUES (${crypto.randomUUID()}, ${user.name}, ${user.email}, ${user.image})
+          `;
+        }
+      } catch (error) {
+        console.error("Error in signIn callback:", error);
+      }
+      
+      return true;
+    },
+    async jwt({ token, user }) {
+      if (user?.email) {
+        const users = await sql`
+          SELECT id FROM "User" WHERE email = ${user.email}
+        `;
+        if (users.length > 0) {
+          token.userId = users[0].id;
+        }
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (token.userId && session.user) {
+        session.user.id = token.userId as string;
+      }
+      return session;
+    },
+  },
+  pages: {
+    signIn: "/",
+  },
+});
