@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { sql } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
@@ -7,21 +7,28 @@ export async function GET(request: Request) {
     const filter = searchParams.get("filter");
     const limit = searchParams.get("limit");
 
-    const where: { isNewArrival?: boolean; isTrending?: boolean } = {};
+    let query = `SELECT * FROM "Product"`;
+    const conditions: string[] = [];
 
     if (filter === "new") {
-      where.isNewArrival = true;
+      conditions.push(`"isNewArrival" = true`);
     } else if (filter === "trending") {
-      where.isTrending = true;
+      conditions.push(`"isTrending" = true`);
     }
 
-    const products = await prisma.product.findMany({
-      where,
-      orderBy: { sortOrder: "asc" },
-      ...(limit ? { take: parseInt(limit, 10) } : {}),
-    });
+    if (conditions.length > 0) {
+      query += ` WHERE ${conditions.join(" AND ")}`;
+    }
 
-    const transformedProducts = products.map((product) => ({
+    query += ` ORDER BY "sortOrder" ASC`;
+
+    if (limit) {
+      query += ` LIMIT ${parseInt(limit, 10)}`;
+    }
+
+    const products = await sql(query);
+
+    const transformedProducts = products.map((product: Record<string, unknown>) => ({
       id: product.id,
       name: product.name,
       priceCents: product.priceCents,
@@ -30,7 +37,6 @@ export async function GET(request: Request) {
       stars: product.stars,
       reviewCount: product.reviewCount,
       image: `/products/${product.imageFileName}`,
-      imageTransform: product.imageTransform,
       isNewArrival: product.isNewArrival,
       isTrending: product.isTrending,
       sortOrder: product.sortOrder,
