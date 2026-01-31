@@ -35,7 +35,17 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const sql = getSql();
-    const session = await auth();
+    
+    let session;
+    try {
+      session = await auth();
+    } catch (authError) {
+      console.error("Auth error:", authError);
+      return NextResponse.json(
+        { error: "Authentication error" },
+        { status: 401 }
+      );
+    }
 
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -86,7 +96,17 @@ export async function POST(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const sql = getSql();
-    const session = await auth();
+    
+    let session;
+    try {
+      session = await auth();
+    } catch (authError) {
+      console.error("Auth error:", authError);
+      return NextResponse.json(
+        { error: "Authentication error" },
+        { status: 401 }
+      );
+    }
 
     if (!session?.user?.id) {
       return NextResponse.json(
