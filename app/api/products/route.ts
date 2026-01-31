@@ -1,4 +1,4 @@
-import { sql } from "@/lib/db";
+import { getSql } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 interface ProductRow {
@@ -17,6 +17,7 @@ interface ProductRow {
 
 export async function GET(request: Request) {
   try {
+    const sql = getSql();
     const { searchParams } = new URL(request.url);
     const filter = searchParams.get("filter");
 

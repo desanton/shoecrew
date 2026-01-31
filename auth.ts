@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
-import { sql } from "@/lib/db";
+import { getSql } from "@/lib/db";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
@@ -25,6 +25,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (!user.email) return false;
       
       try {
+        const sql = getSql();
         // Check if user exists
         const existingUsers = await sql`
           SELECT id FROM "User" WHERE email = ${user.email}
@@ -44,7 +45,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return true;
     },
     async jwt({ token, user }) {
-      if (user?.email) {
+      if (usersql = getSql();
+        const ?.email) {
         const users = await sql`
           SELECT id FROM "User" WHERE email = ${user.email}
         `;
