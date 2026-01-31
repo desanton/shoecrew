@@ -3,6 +3,35 @@ import { getSql } from "@/lib/db";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+// GET /api/favorites - Get all favorite productIds for authenticated user
+export async function GET(request: NextRequest) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const sql = getSql();
+    const userId = session.user.id;
+    const favorites = await sql`SELECT "productId" FROM "Favorite" WHERE "userId" = ${userId}`;
+
+    // Return only productIds as string[]
+    const productIds = favorites.map((f: { productId: string }) => f.productId);
+
+    return NextResponse.json(productIds);
+  } catch (error) {
+    console.error("GET /api/favorites failed:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch favorites" },
+      { status: 500 }
+    );
+  }
+}
+
 // POST /api/favorites - Add a product to favorites
 export async function POST(request: NextRequest) {
   console.log("POST /api/favorites called");
@@ -62,6 +91,42 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, productId }, { status: 201 });
   } catch (error: any) {
     console.error("POST /api/favorites error:", error?.message, error?.stack);
+    return NextResponse.json(
+      { error: `Database error: ${error?.message || "unknown"}` },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE /api/favorites - Remove a product from favorites
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const sql = getSql();
+    const { productId } = await request.json();
+
+    if (!productId) {
+      return NextResponse.json(
+        { error: "productId is required" },
+        { status: 400 }
+      );
+    }
+
+    const userId = session.user.id;
+
+    await sql`DELETE FROM "Favorite" WHERE "userId" = ${userId} AND "productId" = ${productId}`;
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error("DELETE /api/favorites error:", error?.message, error?.stack);
     return NextResponse.json(
       { error: `Database error: ${error?.message || "unknown"}` },
       { status: 500 }
