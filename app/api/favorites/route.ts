@@ -1,12 +1,11 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/auth";
 import { sql } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 // GET /api/favorites - Get all favorite productIds for authenticated user
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -34,7 +33,7 @@ export async function GET() {
 // POST /api/favorites - Add a product to favorites
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -84,7 +83,7 @@ export async function POST(request: Request) {
 // DELETE /api/favorites - Remove a product from favorites
 export async function DELETE(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session?.user?.id) {
       return NextResponse.json(
