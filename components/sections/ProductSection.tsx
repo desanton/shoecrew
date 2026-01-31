@@ -5,7 +5,8 @@ import { products } from "@/lib/data/products";
 import { ProductCard } from "@/components/products/ProductCard";
 
 export function ProductSection() {
-  const [activeTab, setActiveTab] = useState(0);
+  const [newArrivalsActive, setNewArrivalsActive] = useState(true);
+  const [trendingActive, setTrendingActive] = useState(true);
 
   return (
     <section className="bg-page-bg">
@@ -20,14 +21,14 @@ export function ProductSection() {
         >
           {/* New Arrivals Button */}
           <button
-            onClick={() => setActiveTab(0)}
+            onClick={() => setNewArrivalsActive(!newArrivalsActive)}
             className="flex flex-row justify-center items-center transition-all duration-200"
             style={{
               minWidth: "215px",
               height: "57px",
               padding: "16px 33px",
-              background: activeTab === 0 ? "#4A4C6C" : "transparent",
-              border: activeTab === 0 ? "none" : "3px solid #4A4C6C",
+              background: newArrivalsActive ? "#4A4C6C" : "transparent",
+              border: newArrivalsActive ? "4px solid #7C7EA2" : "3px solid #4A4C6C",
               borderRadius: "100px"
             }}
           >
@@ -38,7 +39,7 @@ export function ProductSection() {
                 fontSize: "20px",
                 lineHeight: "100%",
                 letterSpacing: "0.05em",
-                color: activeTab === 0 ? "#FFFFFF" : "#4A4C6C"
+                color: newArrivalsActive ? "#FFFFFF" : "#4A4C6C"
               }}
             >
               NEW ARRIVALS
@@ -47,14 +48,14 @@ export function ProductSection() {
 
           {/* What's Trending Button */}
           <button
-            onClick={() => setActiveTab(1)}
+            onClick={() => setTrendingActive(!trendingActive)}
             className="flex flex-row justify-center items-center transition-all duration-200"
             style={{
               minWidth: "250px",
               height: "57px",
               padding: "16px 33px",
-              background: activeTab === 1 ? "#9FA16D" : "transparent",
-              border: activeTab === 1 ? "none" : "3px solid #9FA16D",
+              background: trendingActive ? "#9FA16D" : "transparent",
+              border: trendingActive ? "4px solid #BFC18D" : "3px solid #9FA16D",
               borderRadius: "100px"
             }}
           >
@@ -65,7 +66,7 @@ export function ProductSection() {
                 fontSize: "20px",
                 lineHeight: "100%",
                 letterSpacing: "0.05em",
-                color: activeTab === 1 ? "#FFFFFF" : "#9FA16D"
+                color: trendingActive ? "#FFFFFF" : "#9FA16D"
               }}
             >
               {"WHAT'S TRENDING"}
