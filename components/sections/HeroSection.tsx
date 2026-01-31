@@ -36,7 +36,7 @@ export function HeroSection() {
 
         {/* Adjustable Label - Top Left */}
         <div 
-          className="absolute"
+          className="absolute hero-adjustable"
           style={{ width: "120px", height: "34px", left: "209px", top: "37px" }}
         >
           <span 
@@ -56,7 +56,7 @@ export function HeroSection() {
 
         {/* Shoe Image with Shadow */}
         <div 
-          className="absolute"
+          className="absolute hero-shoe"
           style={{ 
             width: "753px", 
             height: "552px", 
@@ -93,7 +93,7 @@ export function HeroSection() {
 
         {/* Soft Pad Label - Bottom Right */}
         <div 
-          className="absolute"
+          className="absolute hero-soft-pad"
           style={{ width: "91px", height: "34px", left: "876px", top: "469px" }}
         >
           <span 

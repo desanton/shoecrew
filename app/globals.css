@@ -141,6 +141,52 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* Hero Section Animations */
+@keyframes fadeInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-adjustable {
+  animation: fadeInFromLeft 0.8s ease-out 0.3s both;
+}
+
+.hero-soft-pad {
+  animation: fadeInFromRight 0.8s ease-out 0.6s both;
+}
+
+.hero-shoe {
+  animation: fadeInFromTop 1s ease-out 0s both;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
