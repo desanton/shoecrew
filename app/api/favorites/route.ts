@@ -1,20 +1,33 @@
 import { auth } from "@/auth";
 import { getSql } from "@/lib/db";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+// Helper to get session from request
+async function getSessionFromRequest(request: NextRequest) {
+  try {
+    const session = await auth();
+    return session;
+  } catch (error) {
+    console.error("Failed to get session:", error);
+    return null;
+  }
+}
 
 // GET /api/favorites - Get all favorite productIds for authenticated user
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const sql = getSql();
-    const session = await auth();
+    const session = await getSessionFromRequest(request);
 
     if (!session?.user?.id) {
+      console.log("No session or user ID");
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
       );
     }
 
+    const sql = getSql();
     const userId = session.user.id;
     const favorites = await sql`SELECT "productId" FROM "Favorite" WHERE "userId" = ${userId}`;
 
@@ -32,28 +45,19 @@ export async function GET() {
 }
 
 // POST /api/favorites - Add a product to favorites
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const sql = getSql();
-    
-    let session;
-    try {
-      session = await auth();
-    } catch (authError) {
-      console.error("Auth error:", authError);
-      return NextResponse.json(
-        { error: "Authentication error" },
-        { status: 401 }
-      );
-    }
+    const session = await getSessionFromRequest(request);
 
     if (!session?.user?.id) {
+      console.log("No session or user ID in POST");
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
       );
     }
 
+    const sql = getSql();
     const { productId } = await request.json();
 
     if (!productId) {
@@ -93,28 +97,19 @@ export async function POST(request: Request) {
 }
 
 // DELETE /api/favorites - Remove a product from favorites
-export async function DELETE(request: Request) {
+export async function DELETE(request: NextRequest) {
   try {
-    const sql = getSql();
-    
-    let session;
-    try {
-      session = await auth();
-    } catch (authError) {
-      console.error("Auth error:", authError);
-      return NextResponse.json(
-        { error: "Authentication error" },
-        { status: 401 }
-      );
-    }
+    const session = await getSessionFromRequest(request);
 
     if (!session?.user?.id) {
+      console.log("No session or user ID in DELETE");
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
       );
     }
 
+    const sql = getSql();
     const { productId } = await request.json();
 
     if (!productId) {
