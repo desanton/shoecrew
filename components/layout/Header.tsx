@@ -65,13 +65,14 @@ export function Header() {
 
         {/* Icons and Auth */}
         <div className="flex flex-row items-center" style={{ gap: "24px" }}>
-          <button
-            className="flex items-center justify-center"
+          <Link
+            href="/favorites"
+            className="flex items-center justify-center hover:opacity-70 transition-opacity"
             style={{ width: "24px", height: "24.5px" }}
-            aria-label="Wishlist"
+            aria-label="Favorites"
           >
             <HeartIcon filled={false} width={18} height={16.5} />
-          </button>
+          </Link>
           <button style={{ width: "24px", height: "24px" }}>
             <ShoppingCart
               className="text-dark"
