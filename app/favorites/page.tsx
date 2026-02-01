@@ -4,6 +4,9 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { ProductCard } from "@/components/products/ProductCard";
 import { SimilarProducts } from "@/components/sections/SimilarProducts";
+import { PromoBanner } from "@/components/layout/PromoBanner";
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
 import type { Product } from "@/lib/types/product";
 
 export default function FavoritesPage() {
@@ -65,60 +68,76 @@ export default function FavoritesPage() {
     productId: string,
     isFavorited: boolean
   ) => {
-    // Optimistic update
-    setFavorites((prev) => {
-      const newSet = new Set(prev);
-      if (isFavorited) {
-        newSet.add(productId);
-      } else {
-        newSet.delete(productId);
-      }
-      return newSet;
-    });
+    // Optimistic update local state
+    const newFavorites = new Set(favorites);
+    if (isFavorited) {
+      newFavorites.add(productId);
+    } else {
+      newFavorites.delete(productId);
+    }
+    setFavorites(newFavorites);
 
     try {
       if (isFavorited) {
-        await fetch("/api/favorites", {
+        const response = await fetch("/api/favorites", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ productId }),
         });
+        if (!response.ok) {
+          console.error("Failed to add favorite");
+          // Revert optimistic update
+          setFavorites(favorites);
+        }
       } else {
-        await fetch("/api/favorites", {
+        const response = await fetch("/api/favorites", {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ productId }),
         });
+        if (!response.ok) {
+          console.error("Failed to remove favorite");
+          // Revert optimistic update
+          setFavorites(newFavorites);
+        }
       }
-      // Refresh the page to update
+      // Refresh the page to sync
       setRefreshKey((prev) => prev + 1);
     } catch (error) {
       console.error("Failed to toggle favorite:", error);
+      // Revert optimistic update
+      setFavorites(favorites);
     }
   };
 
   // Redirect if not authenticated
   if (status === "unauthenticated") {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ backgroundColor: "var(--color-page-bg)" }}
-      >
-        <p
-          style={{
-            fontFamily: "'Space Grotesk', sans-serif",
-            fontSize: "18px",
-            color: "#000000",
-          }}
+      <div style={{ backgroundColor: "var(--color-page-bg)", minHeight: "100vh" }}>
+        <PromoBanner />
+        <Header />
+        <div
+          className="min-h-screen flex items-center justify-center"
+          style={{ backgroundColor: "var(--color-page-bg)" }}
         >
-          Please sign in to view your favorites.
-        </p>
+          <p
+            style={{
+              fontFamily: "'Space Grotesk', sans-serif",
+              fontSize: "18px",
+              color: "#000000",
+            }}
+          >
+            Please sign in to view your favorites.
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
     <main style={{ backgroundColor: "var(--color-page-bg)", minHeight: "100vh" }}>
+      <PromoBanner />
+      <Header />
       <div
         className="mx-auto"
         style={{
@@ -198,6 +217,7 @@ export default function FavoritesPage() {
           </>
         )}
       </div>
+      <Footer />
     </main>
   );
 }
