@@ -103,8 +103,20 @@ export function ProductCard({
         {/* Wishlist Button */}
         <button
           className="absolute flex items-center justify-center"
-          style={{ right: "12px", top: "12px", width: "34px", height: "34px" }}
+          style={{ 
+            right: "12px", 
+            top: "12px", 
+            width: "34px", 
+            height: "34px",
+            zIndex: 10,
+            pointerEvents: "auto",
+            background: "transparent",
+            border: "none",
+            cursor: "pointer",
+            padding: 0,
+          }}
           onClick={handleFavoriteClick}
+          type="button"
           aria-label={
             localFavorited ? "Remove from favorites" : "Add to favorites"
           }
